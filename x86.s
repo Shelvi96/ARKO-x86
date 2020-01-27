@@ -18,59 +18,77 @@ rotbmp24:
 
 	mov eax, width
 	imul eax, width
-	lea eax, [eax*4]		; total number of bmp pixels
+	lea eax, [eax*2+eax]		; total number of bmp pixels
 
 	mov ecx, eax			; counter
-	mov edi, input			; current pixel
+	mov esi, input			; target pixal
+	mov edi, input			; source pixel
 	
 lp1:
 	; checking if should be swapped
-	mov eax, [cox]
-	mov ebx, [coy]
+	mov eax, dword[cox]
+	mov ebx, dword[coy]
 	cmp eax, ebx
-	jae nxt					; if x >= y skip
+	jae swapped					; if x >= y skip
 
 	; counting new position
-	mov eax, [cox]
-	mov ebx, width
+	mov eax, width
+	mov ebx, dword[cox]
 	mul ebx
-	mov ebx, [coy]
+	mov ebx, dword[coy]
 	add eax, ebx			; eax : x*witdh+y
 
 	; counting new index
-	mov ebx, 4
+	mov ebx, 3
 	mul ebx					
-	mov esi, eax			; esi has dest coords
+	add esi, eax			; esi has dest index
+							; edi has source index
 
-	; swapping old index with new one
-	mov eax, esi
-	mov esi, edi
-	mov edi, eax
+	;xchg edi, esi
+	mov al, byte[esi]
+	mov ah, byte[edi]
+	mov byte[esi], ah
+	mov byte[edi], al
+	
+	mov al, byte[esi+1]
+	mov ah, byte[edi+1]
+	mov byte[esi+1], ah
+	mov byte[edi+1], al
+	
+	mov al, byte[esi+2]
+	mov ah, byte[edi+2]
+	mov byte[esi+2], ah
+	mov byte[edi+2], al
 
+	;mov byte[edi+1], 0
+	;mov byte[edi+2], 0
+
+swapped:
 	; checking if end of a row
-	mov eax, [cox]
-	mov ebx, width
-	sub ebx, 1
+	mov ebx, dword[cox]
+	mov eax, width
+	sub eax, 1
 	cmp eax, ebx
 	jne incrow
 
-	; this is the end of the row -> moving to next column
+	; this is the end of the row -> moving to next row
 	mov dword[cox], 0
 	mov ebx, dword[coy]
 	inc ebx
 	mov dword[coy], ebx
 	jmp nxt
 
-	; its not the end of the row -> moving to next row
+	; its not the end of the row -> moving to next column
 incrow:
-	mov ebx, dword[cox]
+	;mov ebx, dword[cox]
 	inc ebx
-	mov dword[cox], ebx
+	mov [cox], ebx
 
-	; move to next pixel (edi), decrease counter
+	; reset esi (target), increase edi(source), decrease counter
 nxt:
-	add edi, 4
-	sub ecx, 4
+	mov esi, input
+	add edi, 3
+	sub ecx, 3
     jnz lp1
 	
 end:

@@ -23,7 +23,7 @@ struct  BMPHeader {
 };
 #pragma pack(pop)
 
-void rotbmp24(int *img, int width);
+void rotbmp24(void *img, int width);
 
 int main(int argc, char* argv[]) {
     if(argc < 3) {
@@ -37,27 +37,96 @@ int main(int argc, char* argv[]) {
     struct BMPHeader bmph;
 
     fread(&bmph, sizeof(struct BMPHeader), 1, fp);
+// #define char int
+    // int *datar, *datag, *datab;
+    // datar = (int*)malloc(bmph.width_px*bmph.height_px*sizeof(int));
+    // datag = (int*)malloc(bmph.width_px*bmph.height_px*sizeof(int));
+    // datab = (int*)malloc(bmph.width_px*bmph.height_px*sizeof(int));
+    char* data = (char*)malloc(3*bmph.width_px*bmph.height_px*sizeof(char));
 
-    int* data = (int*)malloc(4*bmph.width_px*bmph.height_px*sizeof(int));
+    // for(int i = 0; i < bmph.width_px*bmph.height_px; ++i) {
+    //     datar[i] = fgetc(fp);
+    //     datag[i] = fgetc(fp);
+    //     datab[i] = fgetc(fp);
+    // }
 
-    for(int i = 0; i < bmph.width_px*bmph.height_px; ++i)
-        fread(&data[i], sizeof(int), 1, fp);
+    for(int i = 0; i < 3*bmph.width_px*bmph.height_px; ++i) {
+        data[i] = fgetc(fp);
+        printf("%d\n", data[i]);
+    }
 
     fclose(fp);
 
-
+    /* funkcjaaa */
     rotbmp24(data, bmph.width_px);
-    
+
+/*    for(int i = 0; i < bmph.width_px*bmph.height_px; ++i) {
+        int x = i%bmph.width_px;
+        int y = i/bmph.width_px;
+
+        if (x < y) {
+            int coord = y*bmph.width_px + x;
+            int new_coord = x*bmph.width_px + y;
+
+            int r = datar[coord];
+            int g = datag[coord];
+            int b = datab[coord];
+
+            datar[coord] = datar[new_coord];
+            datag[coord] = datag[new_coord];
+            datab[coord] = datab[new_coord];
+
+            datar[new_coord] = r;
+            datag[new_coord] = g;
+            datab[new_coord] = b;
+        }
+    }
+
+    for(int i = 0; i < bmph.width_px*bmph.height_px; ++i) {
+        int x = i%bmph.width_px;
+        int y = i/bmph.width_px;
+
+        if (y < bmph.width_px/2) {
+            int coord = y*bmph.width_px + x;
+            y = bmph.width_px - y;
+            int new_coord = y*bmph.width_px + x;
+
+            int r = datar[coord];
+            int g = datag[coord];
+            int b = datab[coord];
+
+            datar[coord] = datar[new_coord];
+            datag[coord] = datag[new_coord];
+            datab[coord] = datab[new_coord];
+
+            datar[new_coord] = r;
+            datag[new_coord] = g;
+            datab[new_coord] = b;
+        }
+    }
+*/
+    /* koniec funkcjiiii */
 
     FILE *target;
     target = fopen(argv[2], "w");
 
     fwrite(&bmph, sizeof(struct BMPHeader), 1, target);
 
-    for(int i = 0; i < bmph.width_px*bmph.height_px*3; ++i)
-        fwrite(&data[i], sizeof(int), 1, target);
+    // for(int i = 0; i < bmph.width_px*bmph.height_px; ++i) {
+    //     fputc(datar[i], target);
+    //     fputc(datag[i], target);
+    //     fputc(datab[i], target);
+    // }
+
+    for(int i = 0; i < 3*bmph.width_px*bmph.height_px; ++i) {
+        fputc(data[i], target);
+    }
 
     fclose(target);
+
+    // free(datar);
+    // free(datag);
+    // free(datab);
 
     free(data);
 
